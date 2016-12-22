@@ -1,5 +1,5 @@
 /**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+    Copyright 2016-2017 Brett Harris. All Rights Reserved. Based of of Amazon Alexa skill samples
 
     Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
@@ -17,23 +17,23 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
         //reset scores for all existing players
         storage.loadGame(session, function (currentGame) {
             if (currentGame.data.players.length === 0) {
-                response.ask('New game started. Who\'s your first player?',
-                    'Please tell me who\'s your first player?');
+                response.ask('This Alexa skill provides an estimation of your blood alcohol, but your experience may vary by a wide number due to many factors. Do not rely on this to determine if you are under or over the legal limit. For use only by people of legal drinking age. Always drink responsibly. New session started. Who\'s your first drinker?',
+                    'Please tell me who\'s your first drinker?');
                 return;
             }
             currentGame.data.players.forEach(function (player) {
                 currentGame.data.scores[player] = 0;
             });
             currentGame.save(function () {
-                var speechOutput = 'New game started with '
-                    + currentGame.data.players.length + ' existing player';
+                var speechOutput = 'This Alexa skill provides an estimation of your blood alcohol, but your experience may vary by a wide number due to many factors. Do not rely on this to determine if you are under or over the legal limit. For use only by people of legal drinking age. Always drink responsibly.  New session started with '
+                    + currentGame.data.players.length + ' existing drinker';
                 if (currentGame.data.players.length > 1) {
                     speechOutput += 's';
                 }
                 speechOutput += '.';
                 if (skillContext.needMoreHelp) {
-                    speechOutput += '. You can give a player points, add another player, reset all players or exit. What would you like?';
-                    var repromptText = 'You can give a player points, add another player, reset all players or exit. What would you like?';
+                    speechOutput += '. You can give a drinker points, add another drinker, reset all drinkers or exit. What would you like?';
+                    var repromptText = 'You can give a drinker points, add another drinker, reset all drinkers or exit. What would you like?';
                     response.ask(speechOutput, repromptText);
                 } else {
                     response.tell(speechOutput);
@@ -55,7 +55,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             var speechOutput,
                 reprompt;
             if (currentGame.data.scores[newPlayerName] !== undefined) {
-                speechOutput = newPlayerName + ' has already joined the game.';
+                speechOutput = newPlayerName + ' has already joined the session.';
                 if (skillContext.needMoreHelp) {
                     response.ask(speechOutput + ' What else?', 'What else?');
                 } else {
@@ -63,15 +63,15 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 }
                 return;
             }
-            speechOutput = newPlayerName + ' has joined your game. ';
+            speechOutput = newPlayerName + ' has joined your session. ';
             currentGame.data.players.push(newPlayerName);
             currentGame.data.scores[newPlayerName] = 0;
             if (skillContext.needMoreHelp) {
                 if (currentGame.data.players.length == 1) {
-                    speechOutput += 'You can say, I am Done Adding Players. Now who\'s your next player?';
+                    speechOutput += 'You can say, I am Done Adding Drinkers. Now who\'s your next drinker?';
                     reprompt = textHelper.nextHelp;
                 } else {
-                    speechOutput += 'Who is your next player?';
+                    speechOutput += 'Who is your next drinker?';
                     reprompt = textHelper.nextHelp;
                 }
             }
@@ -91,7 +91,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             score = intent.slots.ScoreNumber,
             scoreValue;
         if (!playerName) {
-            response.ask('sorry, I did not hear the player name, please say that again', 'Please say the name again');
+            response.ask('sorry, I did not hear the drinker name, please say that again', 'Please say the name again');
             return;
         }
         scoreValue = parseInt(score.value);
@@ -103,7 +103,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
         storage.loadGame(session, function (currentGame) {
             var targetPlayer, speechOutput = '', newScore;
             if (currentGame.data.players.length < 1) {
-                response.ask('sorry, no player has joined the game yet, what can I do for you?', 'what can I do for you?');
+                response.ask('sorry, no drinker has joined the session yet, what can I do for you?', 'what can I do for you?');
                 return;
             }
             for (var i = 0; i < currentGame.data.players.length; i++) {
@@ -113,7 +113,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 }
             }
             if (!targetPlayer) {
-                response.ask('Sorry, ' + playerName + ' has not joined the game. What else?', playerName + ' has not joined the game. What else?');
+                response.ask('Sorry, ' + playerName + ' has not joined the session. What else?', playerName + ' has not joined the session. What else?');
                 return;
             }
             newScore = currentGame.data.scores[targetPlayer] + scoreValue;
@@ -121,7 +121,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
 
             speechOutput += scoreValue + ' for ' + targetPlayer + '. ';
             if (currentGame.data.players.length == 1 || currentGame.data.players.length > 3) {
-                speechOutput += targetPlayer + ' has ' + newScore + ' in total.';
+                speechOutput += targetPlayer + ' has ' + newScore + 'drinks in total.';
             } else {
                 speechOutput += 'That\'s ';
                 currentGame.data.players.forEach(function (player, index) {
@@ -146,9 +146,16 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 speechOutput = '',
                 leaderboard = '';
             if (currentGame.data.players.length === 0) {
-                response.tell('Nobody has joined the game.');
+                response.tell('Nobody has joined the session.');
                 return;
             }
+
+            //Get the number of hours that you have been playing
+            var startDate = new Date(currentGame.data.startTime);
+            var endDate = new Date();
+            var hoursDiff = (endDate.getHours() - startDate.getHours() + ((endDate.getMinutes() - startDate.getMinutes())/60)).toFixed(1);
+            speechOutput += 'You have been drinking for ' +hoursDiff+' hours. ';
+
             currentGame.data.players.forEach(function (player) {
                 sortedPlayerScores.push({
                     score: currentGame.data.scores[player],
@@ -159,15 +166,24 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 return p2.score - p1.score;
             });
             sortedPlayerScores.forEach(function (playerScore, index) {
+                var calculatedScore = ((0.806*playerScore.score*1.2)/(0.58*80)) - (0.015*hoursDiff);
+                calculatedScore = calculatedScore.toFixed(3);
+                if (calculatedScore<0){
+                    calculatedScore = 0;
+                }
+
                 if (index === 0) {
-                    speechOutput += playerScore.player + ' has ' + playerScore.score + 'point';
-                    if (playerScore.score > 1) {
-                        speechOutput += 's';
-                    }
+                    speechOutput += playerScore.player + ' has an estimated B A C of ' + calculatedScore;
                 } else if (index === sortedPlayerScores.length - 1) {
-                    speechOutput += 'And ' + playerScore.player + ' has ' + playerScore.score;
+                    speechOutput += 'And ' + playerScore.player + ' has ' + calculatedScore;
                 } else {
-                    speechOutput += playerScore.player + ', ' + playerScore.score;
+                    speechOutput += ' ,' + playerScore.player + ', ' + calculatedScore;
+                }
+
+                if (calculatedScore >= 0.08) {
+                    speechOutput += ', which is over the legal driving limit';
+                } else if (calculatedScore <= 0.059) {
+                    speechOutput += ' and is probably sober';
                 }
                 speechOutput += '. ';
                 leaderboard += 'No.' + (index + 1) + ' - ' + playerScore.player + ' : ' + playerScore.score + '\n';
@@ -179,7 +195,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     intentHandlers.ResetPlayersIntent = function (intent, session, response) {
         //remove all players
         storage.newGame(session).save(function () {
-            response.ask('New game started without players, who do you want to add first?', 'Who do you want to add first?');
+            response.ask('New session started without drinkers, who do you want to add first?', 'Who do you want to add first?');
         });
     };
 
@@ -194,7 +210,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
 
     intentHandlers['AMAZON.CancelIntent'] = function (intent, session, response) {
         if (skillContext.needMoreHelp) {
-            response.tell('Okay.  Whenever you\'re ready, you can start giving points to the players in your game.');
+            response.tell('Okay.  Whenever you\'re ready, you can start giving drinks to the players in your game.');
         } else {
             response.tell('');
         }
@@ -202,7 +218,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
 
     intentHandlers['AMAZON.StopIntent'] = function (intent, session, response) {
         if (skillContext.needMoreHelp) {
-            response.tell('Okay.  Whenever you\'re ready, you can start giving points to the players in your game.');
+            response.tell('Okay.  Whenever you\'re ready, you can start giving drinks to the players in your game.');
         } else {
             response.tell('');
         }

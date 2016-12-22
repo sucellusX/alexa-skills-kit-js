@@ -1,5 +1,5 @@
 /**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+    Copyright 2016-2017 Brett Harris. All Rights Reserved. Based of of Amazon Alexa skill samples
 
     Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
@@ -26,18 +26,18 @@ var registerEventHandlers = function (eventHandlers, skillContext) {
             var speechOutput = '',
                 reprompt;
             if (currentGame.data.players.length === 0) {
-                speechOutput += 'ScoreKeeper, Let\'s start your game. Who\'s your first player?';
-                reprompt = "Please tell me who is your first player?";
+                speechOutput += 'B A C, Let\'s start your session. Who\'s your first drinker?';
+                reprompt = "Please tell me who is your first drinker?";
             } else if (currentGame.isEmptyScore()) {
-                speechOutput += 'ScoreKeeper, '
-                    + 'you have ' + currentGame.data.players.length + ' player';
+                speechOutput += 'B A C, '
+                    + 'you have ' + currentGame.data.players.length + ' drinker';
                 if (currentGame.data.players.length > 1) {
                     speechOutput += 's';
                 }
-                speechOutput += ' in the game. You can give a player points, add another player, reset all players or exit. Which would you like?';
+                speechOutput += ' in the drinking session. You can give a drinker points, add another drinker, reset all drinkers or exit. Which would you like?';
                 reprompt = textHelper.completeHelp;
             } else {
-                speechOutput += 'ScoreKeeper, What can I do for you?';
+                speechOutput += 'B A C, What can I do for you?';
                 reprompt = textHelper.nextHelp;
             }
             response.ask(speechOutput, reprompt);

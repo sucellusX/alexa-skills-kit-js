@@ -1,5 +1,5 @@
 /**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+    Copyright 2016-2017 Brett Harris. All Rights Reserved. Based of of Amazon Alexa skill samples
 
     Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
@@ -21,9 +21,12 @@ var storage = (function () {
         if (data) {
             this.data = data;
         } else {
+            var now = new Date();
+            var jsonDate = now.toJSON();
             this.data = {
                 players: [],
-                scores: {}
+                scores: {},
+                startTime: jsonDate
             };
         }
         this._session = session;
@@ -47,7 +50,7 @@ var storage = (function () {
             //so next time we can save a read from dynamoDB
             this._session.attributes.currentGame = this.data;
             dynamodb.putItem({
-                TableName: 'ScoreKeeperUserData',
+                TableName: 'BACUserData',
                 Item: {
                     CustomerId: {
                         S: this._session.user.userId
@@ -75,7 +78,7 @@ var storage = (function () {
                 return;
             }
             dynamodb.getItem({
-                TableName: 'ScoreKeeperUserData',
+                TableName: 'BACUserData',
                 Key: {
                     CustomerId: {
                         S: session.user.userId
